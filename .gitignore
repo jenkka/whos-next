@@ -1,0 +1,32 @@
+# Compiled binary
+/whos-next
+
+# Environment files
+.env
+.env.local
+*.env
+
+# Backups and editor swap files
+*.bak
+*.swp
+*~
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Client (Vite/React) artifacts
+client/node_modules/
+client/dist/
+
+# Built static assets (produced by `make client-build`)
+/public/index.html
+/public/assets/
+
+# OS files
+.DS_Store
+Thumbs.db

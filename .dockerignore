@@ -1,0 +1,12 @@
+.git
+.github
+.claude
+client/node_modules
+public
+whos-next
+*.bak
+*.swp
+.env
+.env.local
+*.env
+TODO.txt

@@ -1,0 +1,148 @@
+whos-next — improvement TODO
+============================
+
+
+CRITICAL  (security / data exposure — confirmed against the live Railway URL)
+-----------------------------------------------------------------------------
+
+[x] 1. Add a .gitignore. At minimum: the compiled `whos-next` binary, .env,
+       *.bak, and any local-only build artifacts.
+
+[x] 2. Remove the committed `whos-next` binary from the repo
+       (`git rm whos-next` after #1). It's a 32 MB blob inflating every
+       clone, AND it's downloadable from the live Railway URL. Right now
+       `curl https://whosnext-production-8350.up.railway.app/whos-next`
+       returns 200 and 32 MB.
+
+[x] 3. Move static assets into a `public/` (or `static/`) subdirectory and
+       point the file server at that, not the project root:
+           r.NoRoute(gin.WrapH(http.FileServer(http.Dir("./public"))))
+       Confirmed exposed in production right now (all return 200):
+           /main.go            (full source, including the supabase key)
+           /go.mod  /go.sum
+           /Makefile
+           /.github/workflows/test.yml
+       Once moved, only files under public/ (index.html, script.js,
+       favicon, etc.) are reachable.
+
+[x] 4. Move `supabaseURL` and `supabaseKey` out of source into env vars
+       (`SUPABASE_URL`, `SUPABASE_KEY`). Read them in main(); fail fast
+       with log.Fatal if either is unset. Set the values in Railway's
+       variables panel. Even though the anon key is meant for clients,
+       hardcoding it ties prod and dev to the same project and means
+       rotating the key requires a code change + redeploy.
+
+[x] 5. Verify Supabase Row-Level Security is enabled on `names`,
+       `name_lists`, and `orders`. The anon key is effectively public
+       (it's in main.go and in the deployed binary), so without RLS
+       anyone with the URL has full read/write on those tables.
+
+[x] 6. Fix XSS in script.js. The result template uses
+           resultText.innerHTML = `Le toca a <span ...>${chosenName}</span> ✨`
+       which executes any HTML embedded in the chosen name. Names are
+       written by users and not sanitized server-side, so a name like
+           <img src=x onerror=alert(1)>
+       would fire on every choose. Build the DOM via createElement +
+       textContent instead of innerHTML.
+
+
+HIGH  (reliability / correctness)
+---------------------------------
+
+[ ] 7. Add a `GET /healthz` endpoint returning 200 and configure Railway's
+       healthcheck to use it. More reliable than the default TCP probe.
+
+[ ] 8. Implement graceful shutdown — replace `r.Run(...)` with a custom
+       `http.Server` and call `Shutdown(ctx)` on SIGINT/SIGTERM. Railway
+       sends SIGTERM on every redeploy; without this, in-flight requests
+       are cut off.
+
+[ ] 9. Replace `panic` in `getAllNameRecords`, `getNextName`, and the
+       Supabase calls inside it with returned errors. With gin.Recovery()
+       a panic still becomes a 500, but the stack trace pollutes logs and
+       the handler can't add context (which name set, which signature, etc.)
+
+[ ] 10. Sort names alphabetically in `getNamesHandler` so the bubble order
+        is stable across reloads.
+
+[ ] 11. Cap incoming name length: `binding:"required,max=80"` on Name.Name,
+        and reject names that are control-character-only after TrimSpace.
+        Same shape as the whitespace fix, just bounding the upper end.
+
+[ ] 12. Track DB schema in the repo. Add `migrations/` with the SQL for
+        the `names`, `name_lists`, `orders` tables and the `update_order`
+        RPC. Without it, recreating the DB from scratch is guesswork.
+
+
+MEDIUM  (maintainability / observability)
+-----------------------------------------
+
+[ ] 13. Refactor DB calls behind an interface (e.g. `type store interface
+        { ... }`) with the supabase impl as default. Tests can then inject
+        a fake to cover the rotation logic in `chooseHandler` /
+        `updateOrderHandler` / `getNextName`, all of which are at 0%
+        coverage today.
+
+[ ] 14. Switch from ad-hoc `fmt.Print*` / `log.Printf` to `log/slog` with
+        the JSON handler. Railway's log viewer can then filter by level
+        and field.
+
+[ ] 15. Add a request-ID middleware and include the ID in error responses
+        and logs. Lets you correlate a user-reported issue to specific
+        log lines.
+
+[ ] 16. Add `go vet ./...` (and optionally `golangci-lint run`) as steps
+        in the GitHub Actions workflow. Catches things like the
+        `string +=` loop and `omitempty on time.Time` warnings before
+        they land.
+
+[ ] 17. Stamp the build with a version: declare `var version = "dev"` in
+        main, expose it via `/healthz` (or `/version`), build with
+        `-ldflags "-X main.version=$(git rev-parse --short HEAD)"`.
+        Makes it obvious what's deployed.
+
+[ ] 18. Once #13 lands, split main.go into packages — e.g.
+        `internal/handlers`, `internal/store`, `internal/models`. Fine at
+        290 lines today but it'll get worse.
+
+
+LOW  (polish / DX)
+------------------
+
+[x] 19. Add a `Dockerfile` so the build is
+        reproducible instead of relying on Railway's nixpacks
+        auto-detection.
+
+[ ] 20. Write a README covering: what the app does, env vars required,
+        how to run locally, how to deploy. After #4, also add a
+        `.env.example`.
+
+[x] 21. Disable the "Añadir" button while the add-name request is in
+        flight, and show a tiny spinner or "..." so the user can't
+        double-submit.
+
+[x] 22. Persist `selectedNames` to localStorage so bubble selection
+        survives a page reload.
+
+[x] 23. Replace `alert(...)` with non-blocking toasts or inline errors.
+        Tailwind makes this cheap.
+
+[ ] 24. Add a favicon — the tab currently shows the default browser icon.
+
+
+OTHER
+------------------
+
+[ ] 25. Add functionality to remove a user from the UI.
+
+[ ] 26. Should we use the 'require' library for go test files?
+
+[ ] 27. I don't think we should have the password in plain text inside the
+	App.tsx file.
+
+[ ] 28. The UI should be in English by default but have an option to display in
+	Spanish.
+
+[ ] 29. Analyze if testing should be modified after all the changes.
+
+[ ] 30. Password should not be required once the update toggle is on.

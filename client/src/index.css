@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .bubble {
+    @apply transition-all duration-200 ease-in-out cursor-pointer bg-white text-slate-700 border border-slate-200 font-medium py-2 px-5 rounded-full hover:bg-slate-200 hover:border-slate-300;
+  }
+  .bubble-selected {
+    @apply bg-indigo-500 text-white border-indigo-500 hover:bg-indigo-500 hover:border-indigo-500;
+  }
+  .toggle-container {
+    @apply relative inline-block w-[60px] h-[34px];
+  }
+  .toggle-container input {
+    @apply opacity-0 w-0 h-0;
+  }
+  .slider {
+    @apply absolute cursor-pointer inset-0 bg-slate-300 transition-all duration-300 rounded-full;
+  }
+  .slider::before {
+    content: '';
+    @apply absolute h-[26px] w-[26px] left-1 bottom-1 bg-white transition-all duration-300 rounded-full;
+  }
+  .toggle-container input:checked + .slider {
+    @apply bg-green-500;
+  }
+  .toggle-container input:checked + .slider::before {
+    transform: translateX(26px);
+  }
+}
