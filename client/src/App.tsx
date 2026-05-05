@@ -11,23 +11,9 @@ import { useSelectedNames } from './useSelectedNames';
 import { useToasts } from './useToasts';
 import { ToastStack } from './Toast';
 import { PasswordPromptModal, usePasswordPrompt } from './PasswordPrompt';
+import { useLang } from './i18n';
 
 type Mode = 'turn' | 'update' | 'delete';
-
-const MODE_TEXT: Record<Mode, { title: string; subtitle: string }> = {
-  turn: {
-    title: '¿Quiénes van a ver la película?',
-    subtitle: 'Da click en los nombres para agregarlos',
-  },
-  update: {
-    title: 'Actualizar el orden',
-    subtitle: 'Selecciona quiénes participan y aplica los cambios',
-  },
-  delete: {
-    title: 'Borrar un nombre',
-    subtitle: 'Da click en el nombre que quieras borrar',
-  },
-};
 
 export default function App() {
   const [names, setNames] = useState<string[] | null>(null);
@@ -47,6 +33,13 @@ export default function App() {
     submit: submitPassword,
     cancel: cancelPassword,
   } = usePasswordPrompt();
+  const { lang, setLang, t } = useLang();
+
+  const modeText: Record<Mode, { title: string; subtitle: string }> = {
+    turn: { title: t.turnTitle, subtitle: t.turnSubtitle },
+    update: { title: t.updateTitle, subtitle: t.updateSubtitle },
+    delete: { title: t.deleteTitle, subtitle: t.deleteSubtitle },
+  };
 
   const refresh = async () => {
     try {
@@ -54,7 +47,7 @@ export default function App() {
       setNames(data.names);
     } catch (err) {
       console.error(err);
-      push('error', 'No se pudieron cargar los nombres.');
+      push('error', t.errLoadNames);
     }
   };
 
@@ -70,11 +63,11 @@ export default function App() {
   const chooseDisabled = selected.size === 0 || choosing;
   const chooseLabel = useMemo(() => {
     if (choosing) return '-';
-    return mode === 'update' ? 'Actualizar orden' : '¿A quién le toca?';
-  }, [choosing, mode]);
+    return mode === 'update' ? t.updateAction : t.chooseAction;
+  }, [choosing, mode, t]);
 
   const handleAdd = async () => {
-    const password = await askPassword('Introduce la contraseña para añadir un nombre:');
+    const password = await askPassword(t.promptAdd);
     if (!password) return;
 
     const trimmed = newNameInput.trim();
@@ -85,10 +78,10 @@ export default function App() {
       await addName(trimmed, password);
       setNewNameInput('');
       await refresh();
-      push('success', `Añadido: ${trimmed}`);
+      push('success', t.msgAdded(trimmed));
     } catch (err) {
       console.error(err);
-      push('error', 'Contraseña incorrecta o error al añadir el nombre.');
+      push('error', t.errAddName);
     } finally {
       setAdding(false);
     }
@@ -103,8 +96,8 @@ export default function App() {
       return;
     }
 
-    const reason = next === 'update' ? 'actualizar la lista' : 'borrar nombres';
-    const password = await askPassword(`Introduce la contraseña para ${reason}:`);
+    const promptMsg = next === 'update' ? t.promptUpdate : t.promptDelete;
+    const password = await askPassword(promptMsg);
     if (!password) return;
 
     try {
@@ -113,7 +106,7 @@ export default function App() {
       setAdminPassword(password);
       setDeleteTarget(null);
     } catch (err) {
-      push('error', 'Contraseña incorrecta.');
+      push('error', t.errWrongPass);
     }
   };
 
@@ -129,17 +122,17 @@ export default function App() {
     if (!deleteTarget || !adminPassword) return;
 
     const target = deleteTarget;
-    const ok = window.confirm(`¿Borrar a ${target}? Esta acción no se puede deshacer.`);
+    const ok = window.confirm(t.confirmDelete(target));
     if (!ok) return;
 
     try {
       await removeName(target, adminPassword);
       setDeleteTarget(null);
       await refresh();
-      push('success', `Borrado: ${target}`);
+      push('success', t.msgDeleted(target));
     } catch (err) {
       console.error(err);
-      push('error', 'Error al borrar el nombre.');
+      push('error', t.errDeleteName);
     }
   };
 
@@ -156,7 +149,7 @@ export default function App() {
           : await chooseName(namesArray);
       setChosenName(data.chosenName);
     } catch (err) {
-      push('error', 'Error al procesar la solicitud.');
+      push('error', t.errProcess);
     } finally {
       setChoosing(false);
     }
@@ -174,7 +167,12 @@ export default function App() {
     return `mode-btn ${target === 'delete' ? 'mode-btn-active-danger' : 'mode-btn-active'}`;
   };
 
-  const text = MODE_TEXT[mode];
+  const text = modeText[mode];
+
+  const langBtnClass = (target: 'en' | 'es') =>
+    `px-2 py-1 text-xs font-medium rounded-md transition-colors ${
+      lang === target ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:text-slate-900'
+    }`;
 
   return (
     <div className="bg-slate-100 flex items-center justify-center min-h-screen font-sans">
@@ -182,7 +180,7 @@ export default function App() {
         <div className="flex items-center gap-2">
           <input
             type="text"
-            placeholder="Nombre"
+            placeholder={t.addPlaceholder}
             value={newNameInput}
             onChange={(e) => setNewNameInput(e.target.value)}
             disabled={adding}
@@ -193,20 +191,20 @@ export default function App() {
             disabled={adding || newNameInput.trim() === ''}
             className="text-sm text-slate-500 hover:text-indigo-600 transition-colors disabled:text-slate-400 disabled:cursor-not-allowed"
           >
-            {adding ? '...' : 'Añadir'}
+            {adding ? '...' : t.addButton}
           </button>
         </div>
       </div>
 
       <div className="absolute top-4 right-4 z-10 flex items-center gap-1 bg-white rounded-lg p-1 shadow border border-slate-200">
         <button onClick={() => switchMode('turn')} className={modeBtnClass('turn')}>
-          Turno
+          {t.modeTurn}
         </button>
         <button onClick={() => switchMode('update')} className={modeBtnClass('update')}>
-          Actualizar
+          {t.modeUpdate}
         </button>
         <button onClick={() => switchMode('delete')} className={modeBtnClass('delete')}>
-          Borrar
+          {t.modeDelete}
         </button>
       </div>
 
@@ -216,9 +214,9 @@ export default function App() {
 
         <div className="flex flex-wrap justify-center items-center gap-4 mb-8 min-h-[100px]">
           {names === null ? (
-            <p className="text-slate-400">Pensando...</p>
+            <p className="text-slate-400">{t.loading}</p>
           ) : names.length === 0 ? (
-            <p className="text-slate-400">Aún no hay nombres.</p>
+            <p className="text-slate-400">{t.noNames}</p>
           ) : (
             names.map((name) => (
               <button
@@ -239,7 +237,7 @@ export default function App() {
             disabled={!deleteTarget}
             className="bg-red-600 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:bg-red-700 transition-transform transform hover:scale-105 disabled:bg-slate-400 disabled:cursor-not-allowed disabled:scale-100"
           >
-            Borrar
+            {t.deleteAction}
           </button>
         ) : (
           <>
@@ -261,13 +259,24 @@ export default function App() {
                   '...'
                 ) : chosenName ? (
                   <>
-                    Le toca a <span className="text-indigo-600">{chosenName}</span> ✨
+                    {t.resultPrefix}
+                    <span className="text-indigo-600">{chosenName}</span>
+                    {t.resultSuffix}
                   </>
                 ) : null}
               </p>
             </div>
           </>
         )}
+      </div>
+
+      <div className="fixed bottom-4 left-4 z-10 flex items-center gap-1 bg-white rounded-lg p-1 shadow border border-slate-200">
+        <button onClick={() => setLang('en')} className={langBtnClass('en')}>
+          EN
+        </button>
+        <button onClick={() => setLang('es')} className={langBtnClass('es')}>
+          ES
+        </button>
       </div>
 
       <ToastStack toasts={toasts} onDismiss={dismiss} />

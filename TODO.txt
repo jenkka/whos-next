@@ -143,7 +143,7 @@ OTHER
 [x] 27. I don't think we should have the password in plain text inside the
 	App.tsx file.
 
-[ ] 28. The UI should be in English by default but have an option to display in
+[x] 28. The UI should be in English by default but have an option to display in
 	Spanish.
 
 

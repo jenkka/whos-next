@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useLang } from './i18n';
 
 type Request = {
   message: string;
@@ -35,6 +36,7 @@ type Props = {
 
 export function PasswordPromptModal({ request, onSubmit, onCancel }: Props) {
   const [value, setValue] = useState('');
+  const { t } = useLang();
 
   if (!request) return null;
 
@@ -81,14 +83,14 @@ export function PasswordPromptModal({ request, onSubmit, onCancel }: Props) {
             onClick={handleCancel}
             className="px-4 py-2 text-slate-600 hover:text-slate-900 rounded-md"
           >
-            Cancelar
+            {t.modalCancel}
           </button>
           <button
             type="button"
             onClick={handleSubmit}
             className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
           >
-            Confirmar
+            {t.modalConfirm}
           </button>
         </div>
       </div>
