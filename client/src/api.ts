@@ -49,6 +49,21 @@ export function updateOrder(names: string[], password: string): Promise<ChosenRe
   }).then((r) => jsonOrThrow<ChosenResponse>(r));
 }
 
+export const removeName = async (name: string, password: string): Promise<void> => {
+  const response = await fetch('/api/remove-name', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Password': password,
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Server rejected the request');
+  }
+}
+
 export const verifyPassword = async (password: string): Promise<boolean> => {
   const response = await fetch('/api/verify-password', {
     method: 'POST',

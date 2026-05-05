@@ -83,3 +83,43 @@ func (server *Server) getNamesHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, NamesAPIResponse{Names: names})
 }
+
+type RemoveNameRequest struct {
+	Name string `json:"name" binding:"required"`
+}
+
+func (server *Server) removeNameHandler(c *gin.Context) {
+	clientPass := c.GetHeader("X-Admin-Password")
+	if clientPass == "" || clientPass != server.adminPassword {
+		c.String(http.StatusUnauthorized, "Incorrect password")
+		return
+	}
+
+	var req RemoveNameRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.String(http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	target := strings.TrimSpace(req.Name)
+	if target == "" {
+		c.String(http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Relies on ON DELETE CASCADE on orders.name_id (configured in Supabase)
+	// to clean up rows that reference this name. Without the cascade, this
+	// delete would fail with a foreign-key violation.
+	var deleted []Name
+	err := server.supaclient.DB.From("names").
+		Delete().
+		Eq("name", target).
+		Execute(&deleted)
+	if err != nil {
+		log.Printf("Supabase error deleting name %q: %v", target, err)
+		c.String(http.StatusInternalServerError, "Could not delete name")
+		return
+	}
+
+	c.Status(http.StatusOK)
+}

@@ -136,7 +136,7 @@ LOW  (polish / DX)
 OTHER
 ------------------
 
-[ ] 25. Add functionality to remove a user from the UI.
+[x] 25. Add functionality to remove a user from the UI.
 
 [ ] 26. Should we use the 'require' library for go test files?
 
@@ -147,7 +147,7 @@ OTHER
 	Spanish.
 
 
-[ ] 29. Password should not be required once the update toggle is on.
+[x] 29. Password should not be required once the update toggle is on.
 
 [ ] 30. NewTestServer in api/whos_next_test.go builds a Server{} with a
         nil supaclient. Fine for the validation/routing tests we have

@@ -29,5 +29,18 @@ export function useSelectedNames() {
     });
   }, []);
 
-  return { selected, toggle };
+  const prune = useCallback((validNames: Iterable<string>) => {
+    const valid = new Set(validNames);
+    setSelected((prev) => {
+      let changed = false;
+      const next = new Set<string>();
+      prev.forEach((name) => {
+        if (valid.has(name)) next.add(name);
+        else changed = true;
+      });
+      return changed ? next : prev;
+    });
+  }, []);
+
+  return { selected, toggle, prune };
 }

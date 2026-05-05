@@ -122,7 +122,8 @@ func (server *Server) updateOrderHandler(c *gin.Context) {
 	}
 
 	if len(nameLists) == 0 {
-		c.String(http.StatusNotFound, "Signature not found in name_lists")
+		nextName := server.getNextName(records).Name
+		c.JSON(http.StatusOK, APIResponse{ChosenName: nextName})
 		return
 	}
 
