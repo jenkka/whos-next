@@ -189,7 +189,7 @@ export default function App() {
           <button
             onClick={handleAdd}
             disabled={adding || newNameInput.trim() === ''}
-            className="text-sm text-slate-500 hover:text-indigo-600 transition-colors disabled:text-slate-400 disabled:cursor-not-allowed"
+            className="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed"
           >
             {adding ? '...' : t.addButton}
           </button>

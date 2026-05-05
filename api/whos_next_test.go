@@ -176,6 +176,9 @@ func TestRouting_WrongMethod(t *testing.T) {
 
 func skipIfClientNotBuilt(t *testing.T) {
 	t.Helper()
+	// Tests run with CWD=api/, but the FileServer and built assets live at
+	// the repo root's public/. Chdir is auto-reverted at end of test.
+	t.Chdir("..")
 	if _, err := os.Stat("public/index.html"); err != nil {
 		t.Skip("public/index.html missing — run `make client-build` to enable static file tests")
 	}

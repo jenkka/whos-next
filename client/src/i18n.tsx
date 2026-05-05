@@ -70,7 +70,7 @@ export const STRINGS: Record<Lang, Strings> = {
     resultPrefix: "It's ",
     resultSuffix: "'s turn ✨",
 
-    addPlaceholder: 'Name',
+    addPlaceholder: 'Participant name',
     addButton: 'Add',
 
     errLoadNames: 'Could not load names.',
@@ -112,7 +112,7 @@ export const STRINGS: Record<Lang, Strings> = {
     resultPrefix: 'Le toca a ',
     resultSuffix: ' ✨',
 
-    addPlaceholder: 'Nombre',
+    addPlaceholder: 'Nombre del participante',
     addButton: 'Añadir',
 
     errLoadNames: 'No se pudieron cargar los nombres.',
