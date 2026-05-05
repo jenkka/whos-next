@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	supa "github.com/nedpals/supabase-go"
 )
 
 type Order struct {
@@ -18,11 +17,11 @@ type Order struct {
 	OrderIndex int       `json:"order_index"`
 }
 
-func getNextName(supaclient *supa.Client, chosenNamesRecords []Name) Name {
+func (server *Server) getNextName(chosenNamesRecords []Name) Name {
 	signatureToFind := buildListSignature(chosenNamesRecords)
 
 	var nameListResults []NameList
-	err := supaclient.DB.From("name_lists").
+	err := server.supaclient.DB.From("name_lists").
 		Select("*").
 		Eq("canonical_signature", signatureToFind).
 		Execute(&nameListResults)
@@ -40,7 +39,7 @@ func getNextName(supaclient *supa.Client, chosenNamesRecords []Name) Name {
 			CanonicalSignature: signatureToFind,
 		}
 
-		err := supaclient.DB.From("name_lists").
+		err := server.supaclient.DB.From("name_lists").
 			Insert(newNameList).
 			Execute(&nameListResults)
 
@@ -64,7 +63,7 @@ func getNextName(supaclient *supa.Client, chosenNamesRecords []Name) Name {
 		}
 
 		var orderEntriesResults []Order
-		err = supaclient.DB.From("orders").
+		err = server.supaclient.DB.From("orders").
 			Insert(orderEntries).
 			Execute(&orderEntriesResults)
 		if err != nil {
@@ -75,7 +74,7 @@ func getNextName(supaclient *supa.Client, chosenNamesRecords []Name) Name {
 	nameListResult := nameListResults[0]
 
 	var orderRecord Order
-	err = supaclient.DB.From("orders").
+	err = server.supaclient.DB.From("orders").
 		Select("*").
 		Single().
 		Eq("list_id", fmt.Sprintf("%d", nameListResult.ID)).
@@ -87,7 +86,7 @@ func getNextName(supaclient *supa.Client, chosenNamesRecords []Name) Name {
 	}
 
 	var nextNameRecord Name
-	err = supaclient.DB.From("names").
+	err = server.supaclient.DB.From("names").
 		Select("*").
 		Single().
 		Eq("id", fmt.Sprintf("%d", orderRecord.NameID)).
@@ -107,7 +106,7 @@ func (server *Server) updateOrderHandler(c *gin.Context) {
 		return
 	}
 
-	records := stringsToNames(server.supaclient, names.Names)
+	records := server.stringsToNames(names.Names)
 	signature := buildListSignature(records)
 
 	var nameLists []NameList
@@ -175,8 +174,8 @@ func (server *Server) chooseHandler(c *gin.Context) {
 		return
 	}
 
-	chosenNamesRecords := stringsToNames(server.supaclient, req.Names)
-	nextName := getNextName(server.supaclient, chosenNamesRecords).Name
+	chosenNamesRecords := server.stringsToNames(req.Names)
+	nextName := server.getNextName(chosenNamesRecords).Name
 
 	c.JSON(http.StatusOK, APIResponse{ChosenName: nextName})
 }

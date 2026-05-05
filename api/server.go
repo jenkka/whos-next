@@ -50,7 +50,7 @@ func (server *Server) SetupRouter() *gin.Engine {
 		api.POST("/choose", server.chooseHandler)
 		api.POST("/add-name", server.addNameHandler)
 		api.PUT("/update-order", server.updateOrderHandler)
-		api.POST("verify-password", server.verifyPasswordHandler)
+		api.POST("/verify-password", server.verifyPasswordHandler)
 	}
 
 	router.NoRoute(gin.WrapH(http.FileServer(http.Dir("./public"))))

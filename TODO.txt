@@ -101,9 +101,12 @@ MEDIUM  (maintainability / observability)
         `-ldflags "-X main.version=$(git rev-parse --short HEAD)"`.
         Makes it obvious what's deployed.
 
-[ ] 18. Once #13 lands, split main.go into packages — e.g.
-        `internal/handlers`, `internal/store`, `internal/models`. Fine at
-        290 lines today but it'll get worse.
+[ ] 18. Once #13 lands, consider a deeper split — e.g.
+        `internal/handlers`, `internal/store`, `internal/models`. The
+        api/ package is already split by domain (server.go, name.go,
+        name_list.go, order.go); going further only pays off after the
+        store interface from #13 exists, otherwise it's just moving
+        files around.
 
 
 LOW  (polish / DX)
@@ -113,7 +116,7 @@ LOW  (polish / DX)
         reproducible instead of relying on Railway's nixpacks
         auto-detection.
 
-[ ] 20. Write a README covering: what the app does, env vars required,
+[x] 20. Write a README covering: what the app does, env vars required,
         how to run locally, how to deploy. After #4, also add a
         `.env.example`.
 
@@ -127,7 +130,7 @@ LOW  (polish / DX)
 [x] 23. Replace `alert(...)` with non-blocking toasts or inline errors.
         Tailwind makes this cheap.
 
-[ ] 24. Add a favicon — the tab currently shows the default browser icon.
+[x] 24. Add a favicon — the tab currently shows the default browser icon.
 
 
 OTHER
@@ -137,12 +140,19 @@ OTHER
 
 [ ] 26. Should we use the 'require' library for go test files?
 
-[ ] 27. I don't think we should have the password in plain text inside the
+[x] 27. I don't think we should have the password in plain text inside the
 	App.tsx file.
 
 [ ] 28. The UI should be in English by default but have an option to display in
 	Spanish.
 
-[ ] 29. Analyze if testing should be modified after all the changes.
 
-[ ] 30. Password should not be required once the update toggle is on.
+[ ] 29. Password should not be required once the update toggle is on.
+
+[ ] 30. NewTestServer in api/whos_next_test.go builds a Server{} with a
+        nil supaclient. Fine for the validation/routing tests we have
+        today, but any test that exercises a handler past input
+        validation will panic. Either document this constraint or
+        introduce a fake store (depends on #13) so handler logic past
+        the validation layer becomes testable.
+[ ] 32. Analyze if testing should be modified after all the changes.

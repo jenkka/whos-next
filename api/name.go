@@ -7,17 +7,16 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	supa "github.com/nedpals/supabase-go"
 )
 
-func stringsToNames(supaclient *supa.Client, names []string) []Name {
+func (server *Server) stringsToNames(names []string) []Name {
 	chosenNamesMap := make(map[string]struct{})
 	for _, name := range names {
 		chosenNamesMap[name] = struct{}{}
 	}
 
 	chosenNamesRecords := make([]Name, 0, len(names))
-	for _, record := range getAllNameRecords(supaclient) {
+	for _, record := range server.getAllNameRecords() {
 		if _, ok := chosenNamesMap[record.Name]; ok {
 			chosenNamesRecords = append(chosenNamesRecords, record)
 		}
@@ -26,9 +25,9 @@ func stringsToNames(supaclient *supa.Client, names []string) []Name {
 	return chosenNamesRecords
 }
 
-func getAllNameRecords(supaclient *supa.Client) []Name {
+func (server *Server) getAllNameRecords() []Name {
 	var results []Name
-	err := supaclient.DB.From("names").Select("*").Execute(&results)
+	err := server.supaclient.DB.From("names").Select("*").Execute(&results)
 	if err != nil {
 		panic(err)
 	}
@@ -76,7 +75,7 @@ func (server *Server) addNameHandler(c *gin.Context) {
 }
 
 func (server *Server) getNamesHandler(c *gin.Context) {
-	nameRecords := getAllNameRecords(server.supaclient)
+	nameRecords := server.getAllNameRecords()
 	names := make([]string, 0, len(nameRecords))
 	for _, record := range nameRecords {
 		names = append(names, record.Name)
