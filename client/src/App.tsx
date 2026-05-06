@@ -175,28 +175,26 @@ export default function App() {
     }`;
 
   return (
-    <div className="bg-slate-100 flex items-center justify-center min-h-screen font-sans">
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder={t.addPlaceholder}
-            value={newNameInput}
-            onChange={(e) => setNewNameInput(e.target.value)}
-            disabled={adding}
-            className="p-2 rounded-lg border border-slate-300 text-sm disabled:bg-slate-100"
-          />
-          <button
-            onClick={handleAdd}
-            disabled={adding || newNameInput.trim() === ''}
-            className="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed"
-          >
-            {adding ? '...' : t.addButton}
-          </button>
-        </div>
+    <div className="bg-slate-100 min-h-screen font-sans flex flex-col items-center gap-4 p-4 md:px-0 md:py-20 md:gap-0 md:flex-row md:justify-center md:items-center">
+      <div className="z-10 flex w-full items-center gap-2 md:w-auto md:absolute md:top-4 md:left-4 md:gap-4">
+        <input
+          type="text"
+          placeholder={t.addPlaceholder}
+          value={newNameInput}
+          onChange={(e) => setNewNameInput(e.target.value)}
+          disabled={adding}
+          className="flex-1 min-w-0 p-2 rounded-lg border border-slate-300 text-sm disabled:bg-slate-100 md:flex-none"
+        />
+        <button
+          onClick={handleAdd}
+          disabled={adding || newNameInput.trim() === ''}
+          className="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed"
+        >
+          {adding ? '...' : t.addButton}
+        </button>
       </div>
 
-      <div className="absolute top-4 right-4 z-10 flex items-center gap-1 bg-white rounded-lg p-1 shadow border border-slate-200">
+      <div className="z-10 flex items-center gap-1 bg-white rounded-lg p-1 shadow border border-slate-200 md:absolute md:top-4 md:right-4">
         <button onClick={() => switchMode('turn')} className={modeBtnClass('turn')}>
           {t.modeTurn}
         </button>
@@ -208,7 +206,7 @@ export default function App() {
         </button>
       </div>
 
-      <div className="bg-white w-full max-w-2xl mx-auto p-8 rounded-2xl shadow-lg text-center">
+      <div className="bg-white w-full max-w-2xl mx-auto p-6 rounded-2xl shadow-lg text-center md:p-8">
         <h1 className="text-3xl font-bold text-slate-800 mb-2">{text.title}</h1>
         <p className="text-slate-500 mb-8">{text.subtitle}</p>
 
